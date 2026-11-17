@@ -12,6 +12,9 @@ public sealed class AppSettings
     /// <summary>Settings key of the camera selected last time.</summary>
     public string? LastDevice { get; set; }
 
+    /// <summary>"pt" or "en"; null follows the Windows language.</summary>
+    public string? Language { get; set; }
+
     public DeviceSettings GetOrCreate(CameraDeviceInfo device)
     {
         if (!Devices.TryGetValue(device.SettingsKey, out var ds))
@@ -64,7 +67,7 @@ public static class SettingsStore
             }
 
             // Re-create dictionaries so lookups stay case-insensitive after deserialization.
-            var settings = new AppSettings { LastDevice = loaded.LastDevice };
+            var settings = new AppSettings { LastDevice = loaded.LastDevice, Language = loaded.Language };
             foreach (var (key, device) in loaded.Devices ?? [])
             {
                 settings.Devices[key] = new DeviceSettings

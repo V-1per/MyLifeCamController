@@ -127,7 +127,7 @@ public sealed class PreviewGraph : IDisposable
 }
 
 public sealed class PreviewUnavailableException(string step, int hresult)
-    : Exception($"Pré-visualização indisponível ({step} falhou, HRESULT 0x{hresult:X8}).")
+    : Exception(Lang.T($"Pré-visualização indisponível ({step} falhou, HRESULT 0x{hresult:X8}).", $"Preview unavailable ({step} failed, HRESULT 0x{hresult:X8})."))
 {
     public int HResultCode { get; } = hresult;
 

@@ -58,6 +58,13 @@ public sealed class SettingsTests : IDisposable
     }
 
     [Fact]
+    public void Language_choice_round_trips()
+    {
+        SettingsStore.Save(new AppSettings { Language = "en" }, FilePath);
+        Assert.Equal("en", SettingsStore.Load(FilePath).Language);
+    }
+
+    [Fact]
     public void Lookups_are_case_insensitive_after_loading()
     {
         var settings = new AppSettings();

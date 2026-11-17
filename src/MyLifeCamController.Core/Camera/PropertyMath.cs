@@ -37,7 +37,7 @@ public static class PropertyMath
             // DirectShow exposure is log2(seconds): -5 means 1/32 s.
             "Exposure" => FormatExposure(value),
             "WhiteBalance" => $"{value} K",
-            "ColorEnable" => value != 0 ? "Ligada" : "Desligada",
+            "ColorEnable" => value != 0 ? Lang.T("Ligada", "On") : Lang.T("Desligada", "Off"),
             _ => value.ToString(CultureInfo.InvariantCulture),
         };
     }

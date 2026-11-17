@@ -13,6 +13,7 @@ Nasceu de um problema concreto: o autofoco da LifeCam Studio "procura" o foco e 
 - **Aplicar ao iniciar o Windows**: a LifeCam volta ao autofoco quando reinicias o PC; esta opção reaplica as tuas definições em cada arranque.
 - Botão **Definições do driver…** que abre a janela nativa do driver.
 - **Repor predefinições** volta tudo aos valores de fábrica.
+- **Português / English**: escolhe o idioma no canto superior (por omissão segue o idioma do Windows).
 
 ## Requisitos
 

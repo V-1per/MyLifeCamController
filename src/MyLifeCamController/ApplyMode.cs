@@ -1,4 +1,5 @@
 using System.Text;
+using MyLifeCamController.Core;
 using MyLifeCamController.Core.Camera;
 using MyLifeCamController.Core.Settings;
 
@@ -40,13 +41,13 @@ internal static class ApplyMode
                     int n = SettingsApplier.Apply(
                         SettingsApplier.For(session),
                         settings.Devices[device.SettingsKey],
-                        (p, ex) => log.AppendLine($"  {device.Name}: {p.Key} falhou: {ex.Message}"));
-                    log.AppendLine($"  {device.Name}: {n} definições aplicadas");
+                        (p, ex) => log.AppendLine(Lang.T($"  {device.Name}: {p.Key} falhou: {ex.Message}", $"  {device.Name}: {p.Key} failed: {ex.Message}")));
+                    log.AppendLine(Lang.T($"  {device.Name}: {n} definições aplicadas", $"  {device.Name}: {n} settings applied"));
                     pending.Remove(device.SettingsKey);
                 }
                 catch (Exception ex)
                 {
-                    log.AppendLine($"  {device.Name}: erro ao abrir: {ex.Message}");
+                    log.AppendLine(Lang.T($"  {device.Name}: erro ao abrir: {ex.Message}", $"  {device.Name}: error opening: {ex.Message}"));
                 }
             }
 
@@ -60,7 +61,7 @@ internal static class ApplyMode
 
         if (pending.Count > 0)
         {
-            log.AppendLine($"  {pending.Count} câmara(s) guardada(s) não encontrada(s).");
+            log.AppendLine(Lang.T($"  {pending.Count} câmara(s) guardada(s) não encontrada(s).", $"  {pending.Count} saved camera(s) not found."));
         }
 
         WriteLog(log.ToString());
@@ -75,7 +76,7 @@ internal static class ApplyMode
         }
         catch (Exception ex)
         {
-            log.AppendLine($"  erro a listar câmaras: {ex.Message}");
+            log.AppendLine(Lang.T($"  erro a listar câmaras: {ex.Message}", $"  error listing cameras: {ex.Message}"));
             return [];
         }
     }

@@ -1,3 +1,4 @@
+using MyLifeCamController.Core;
 using MyLifeCamController.Core.Camera;
 using MyLifeCamController.Core.Settings;
 
@@ -6,7 +7,7 @@ namespace MyLifeCamController;
 internal sealed class MainForm : Form
 {
     private readonly ComboBox _devices = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 320 };
-    private readonly Button _refresh = new() { Text = "Atualizar lista", AutoSize = true };
+    private readonly Button _refresh = new() { Text = Lang.T("Atualizar lista", "Refresh list"), AutoSize = true };
     private readonly Panel _previewHost = new() { Dock = DockStyle.Fill, BackColor = Color.Black };
     private readonly Label _previewStatus = new()
     {
@@ -15,7 +16,7 @@ internal sealed class MainForm : Form
         TextAlign = ContentAlignment.MiddleCenter,
         Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 11f),
     };
-    private readonly CheckBox _previewToggle = new() { Text = "Pré-visualização", AutoSize = true, Checked = true };
+    private readonly CheckBox _previewToggle = new() { Text = Lang.T("Pré-visualização", "Preview"), AutoSize = true, Checked = true };
     private readonly FlowLayoutPanel _rowsPanel = new()
     {
         Dock = DockStyle.Fill,
@@ -24,9 +25,10 @@ internal sealed class MainForm : Form
         AutoScroll = true,
         Padding = new Padding(8, 4, 8, 4),
     };
-    private readonly Button _reset = new() { Text = "Repor predefinições", AutoSize = true };
-    private readonly Button _driverDialog = new() { Text = "Definições do driver…", AutoSize = true };
-    private readonly CheckBox _startup = new() { Text = "Aplicar as minhas definições ao iniciar o Windows", AutoSize = true };
+    private readonly Button _reset = new() { Text = Lang.T("Repor predefinições", "Reset to defaults"), AutoSize = true };
+    private readonly Button _driverDialog = new() { Text = Lang.T("Definições do driver…", "Driver settings…"), AutoSize = true };
+    private readonly CheckBox _startup = new() { Text = Lang.T("Aplicar as minhas definições ao iniciar o Windows", "Apply my settings when Windows starts"), AutoSize = true };
+    private readonly ComboBox _language = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 110, Items = { "Português", "English" } };
     private readonly Label _status = new() { AutoSize = true, ForeColor = SystemColors.GrayText, Padding = new Padding(0, 6, 0, 0) };
 
     private readonly System.Windows.Forms.Timer _refreshTimer = new() { Interval = 700 };
@@ -60,6 +62,9 @@ internal sealed class MainForm : Form
         _startup.Checked = SafeIsStartupEnabled();
         _startup.CheckedChanged += (_, _) => ToggleStartup();
 
+        _language.SelectedIndex = Lang.IsPortuguese ? 0 : 1;
+        _language.SelectedIndexChanged += (_, _) => ChangeLanguage();
+
         Shown += (_, _) => LoadDevices();
         FormClosing += (_, _) => CloseDevice();
     }
@@ -67,11 +72,13 @@ internal sealed class MainForm : Form
     private void BuildLayout()
     {
         var top = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, Padding = new Padding(8, 8, 8, 0) };
-        top.Controls.Add(new Label { Text = "Câmara:", AutoSize = true, Padding = new Padding(0, 6, 0, 0) });
+        top.Controls.Add(new Label { Text = Lang.T("Câmara:", "Camera:"), AutoSize = true, Padding = new Padding(0, 6, 0, 0) });
         top.Controls.Add(_devices);
         top.Controls.Add(_refresh);
         top.Controls.Add(_previewToggle);
         _previewToggle.Padding = new Padding(12, 4, 0, 0);
+        top.Controls.Add(new Label { Text = Lang.T("Idioma:", "Language:"), AutoSize = true, Padding = new Padding(24, 6, 0, 0) });
+        top.Controls.Add(_language);
 
         _previewHost.Controls.Add(_previewStatus);
         var previewFrame = new Panel { Dock = DockStyle.Fill, Padding = new Padding(8) };
@@ -115,7 +122,7 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            ShowStatus($"Erro a listar câmaras: {ex.Message}");
+            ShowStatus(Lang.T($"Erro a listar câmaras: {ex.Message}", $"Error listing cameras: {ex.Message}"));
             devices = [];
         }
 
@@ -126,7 +133,7 @@ internal sealed class MainForm : Form
 
         if (devices.Count == 0)
         {
-            _previewStatus.Text = "Nenhuma câmara encontrada.\nLiga a câmara e carrega em \"Atualizar lista\".";
+            _previewStatus.Text = Lang.T("Nenhuma câmara encontrada.\nLiga a câmara e carrega em \"Atualizar lista\".", "No camera found.\nConnect the camera and click \"Refresh list\".");
             UpdateButtons();
             return;
         }
@@ -152,7 +159,7 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            _previewStatus.Text = $"Não foi possível abrir \"{device.Name}\".\n{ex.Message}";
+            _previewStatus.Text = Lang.T($"Não foi possível abrir \"{device.Name}\".\n{ex.Message}", $"Could not open \"{device.Name}\".\n{ex.Message}");
             UpdateButtons();
             return;
         }
@@ -162,7 +169,7 @@ internal sealed class MainForm : Form
         if (saved.Properties.Count > 0)
         {
             int n = SettingsApplier.Apply(SettingsApplier.For(_session), saved);
-            ShowStatus($"{n} definição(ões) guardada(s) aplicada(s).");
+            ShowStatus(Lang.T($"{n} definição(ões) guardada(s) aplicada(s).", $"{n} saved setting(s) applied."));
         }
 
         BuildRows();
@@ -204,7 +211,7 @@ internal sealed class MainForm : Form
                 currentGroup = property.Definition.Group;
                 _rowsPanel.Controls.Add(new Label
                 {
-                    Text = currentGroup == PropertyGroup.Camera ? "Câmara" : "Imagem",
+                    Text = currentGroup == PropertyGroup.Camera ? Lang.T("Câmara", "Camera") : Lang.T("Imagem", "Image"),
                     Font = new Font(Font, FontStyle.Bold),
                     AutoSize = true,
                     Margin = new Padding(0, _rowsPanel.Controls.Count == 0 ? 4 : 14, 0, 2),
@@ -219,7 +226,7 @@ internal sealed class MainForm : Form
 
         if (_session.Properties.Count == 0)
         {
-            _rowsPanel.Controls.Add(new Label { Text = "Esta câmara não expõe controlos.", AutoSize = true });
+            _rowsPanel.Controls.Add(new Label { Text = Lang.T("Esta câmara não expõe controlos.", "This camera exposes no controls."), AutoSize = true });
         }
 
         LayoutRows();
@@ -248,7 +255,7 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            ShowStatus($"{row.Property.Definition.DisplayName}: a câmara recusou o valor ({ex.Message}).");
+            ShowStatus(Lang.T($"{row.Property.Definition.DisplayName}: a câmara recusou o valor ({ex.Message}).", $"{row.Property.Definition.DisplayName}: the camera rejected the value ({ex.Message})."));
             return;
         }
 
@@ -258,7 +265,7 @@ internal sealed class MainForm : Form
 
         if (row.Property.Definition.Name == "Focus" && !value.Auto)
         {
-            ShowStatus("Foco fixo. Fica guardado para a próxima vez.");
+            ShowStatus(Lang.T("Foco fixo. Fica guardado para a próxima vez.", "Focus locked. It's saved for next time."));
         }
     }
 
@@ -285,7 +292,7 @@ internal sealed class MainForm : Form
             {
                 // Camera unplugged: stop polling and let the user refresh the list.
                 _refreshTimer.Stop();
-                ShowStatus("Perdi a ligação à câmara. Carrega em \"Atualizar lista\".");
+                ShowStatus(Lang.T("Perdi a ligação à câmara. Carrega em \"Atualizar lista\".", "Lost the connection to the camera. Click \"Refresh list\"."));
                 return;
             }
         }
@@ -304,13 +311,13 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            ShowStatus($"Erro a repor: {ex.Message}");
+            ShowStatus(Lang.T($"Erro a repor: {ex.Message}", $"Error resetting: {ex.Message}"));
         }
 
         _settings.GetOrCreate(_session.Device).Properties.Clear();
         ScheduleSave();
         RefreshValues(force: true);
-        ShowStatus("Predefinições repostas.");
+        ShowStatus(Lang.T("Predefinições repostas.", "Defaults restored."));
     }
 
     private void ShowDriverDialog()
@@ -325,7 +332,7 @@ internal sealed class MainForm : Form
         {
             if (!_session.ShowDriverDialog(Handle))
             {
-                ShowStatus("Esta câmara não tem janela de definições do driver.");
+                ShowStatus(Lang.T("Esta câmara não tem janela de definições do driver.", "This camera has no driver settings window."));
             }
         }
         finally
@@ -347,7 +354,7 @@ internal sealed class MainForm : Form
 
         if (!_previewToggle.Checked)
         {
-            _previewStatus.Text = "Pré-visualização desligada.";
+            _previewStatus.Text = Lang.T("Pré-visualização desligada.", "Preview off.");
             _previewStatus.Visible = true;
             return;
         }
@@ -361,13 +368,13 @@ internal sealed class MainForm : Form
         catch (PreviewUnavailableException ex)
         {
             _previewStatus.Text = ex.CameraBusy
-                ? "A câmara está a ser usada por outra app (ex.: browser, Discord).\nOs controlos continuam a funcionar."
-                : ex.Message + "\nOs controlos continuam a funcionar.";
+                ? Lang.T("A câmara está a ser usada por outra app (ex.: browser, Discord).\nOs controlos continuam a funcionar.", "The camera is being used by another app (e.g. a browser or Discord).\nThe controls still work.")
+                : ex.Message + Lang.T("\nOs controlos continuam a funcionar.", "\nThe controls still work.");
             _previewStatus.Visible = true;
         }
         catch (Exception ex)
         {
-            _previewStatus.Text = $"Pré-visualização indisponível: {ex.Message}\nOs controlos continuam a funcionar.";
+            _previewStatus.Text = Lang.T($"Pré-visualização indisponível: {ex.Message}\nOs controlos continuam a funcionar.", $"Preview unavailable: {ex.Message}\nThe controls still work.");
             _previewStatus.Visible = true;
         }
     }
@@ -387,6 +394,21 @@ internal sealed class MainForm : Form
         _saveTimer.Start();
     }
 
+    private void ChangeLanguage()
+    {
+        bool portuguese = _language.SelectedIndex == 0;
+        if (portuguese == Lang.IsPortuguese)
+        {
+            return;
+        }
+
+        _settings.Language = portuguese ? "pt" : "en";
+        SaveNow();
+
+        // The whole window is built in the chosen language, so restart to rebuild it.
+        Application.Restart();
+    }
+
     private void SaveNow()
     {
         _saveTimer.Stop();
@@ -396,7 +418,7 @@ internal sealed class MainForm : Form
         }
         catch (Exception ex)
         {
-            ShowStatus($"Não consegui guardar as definições: {ex.Message}");
+            ShowStatus(Lang.T($"Não consegui guardar as definições: {ex.Message}", $"Couldn't save the settings: {ex.Message}"));
         }
     }
 
@@ -418,12 +440,12 @@ internal sealed class MainForm : Form
         {
             StartupRegistration.SetEnabled(_startup.Checked);
             ShowStatus(_startup.Checked
-                ? "As tuas definições vão ser aplicadas sempre que entrares no Windows."
-                : "Já não aplica ao iniciar o Windows.");
+                ? Lang.T("As tuas definições vão ser aplicadas sempre que entrares no Windows.", "Your settings will be applied every time you sign in to Windows.")
+                : Lang.T("Já não aplica ao iniciar o Windows.", "No longer applied when Windows starts."));
         }
         catch (Exception ex)
         {
-            ShowStatus($"Erro ao alterar o arranque: {ex.Message}");
+            ShowStatus(Lang.T($"Erro ao alterar o arranque: {ex.Message}", $"Error changing the startup setting: {ex.Message}"));
         }
     }
 

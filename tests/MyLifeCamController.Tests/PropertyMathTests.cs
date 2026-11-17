@@ -47,7 +47,28 @@ public class PropertyMathTests
 
         Assert.Equal("4500 K", PropertyMath.Format(wb, 4500));
         Assert.Equal("133", PropertyMath.Format(brightness, 133));
-        Assert.Equal("Desligada", PropertyMath.Format(color, 0));
+    }
+
+    [Fact]
+    public void Text_follows_the_selected_language()
+    {
+        var color = PropertyCatalog.All.Single(p => p.Name == "ColorEnable");
+        var focus = PropertyCatalog.All.Single(p => p.Name == "Focus");
+        bool original = MyLifeCamController.Core.Lang.IsPortuguese;
+        try
+        {
+            MyLifeCamController.Core.Lang.IsPortuguese = true;
+            Assert.Equal("Desligada", PropertyMath.Format(color, 0));
+            Assert.Equal("Foco", focus.DisplayName);
+
+            MyLifeCamController.Core.Lang.IsPortuguese = false;
+            Assert.Equal("Off", PropertyMath.Format(color, 0));
+            Assert.Equal("Focus", focus.DisplayName);
+        }
+        finally
+        {
+            MyLifeCamController.Core.Lang.IsPortuguese = original;
+        }
     }
 
     [Fact]

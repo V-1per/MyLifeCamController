@@ -66,7 +66,7 @@ public sealed record CameraDeviceInfo(string Name, string DevicePath, string Mon
             var bag = (IPropertyBag)bagObject;
             try
             {
-                string name = ReadString(bag, "FriendlyName") ?? "Câmara desconhecida";
+                string name = ReadString(bag, "FriendlyName") ?? Lang.T("Câmara desconhecida", "Unknown camera");
                 string path = ReadString(bag, "DevicePath") ?? string.Empty;
                 return new CameraDeviceInfo(name, path, displayName);
             }
